@@ -402,7 +402,7 @@ body {
     }
     
     .form-stok input, .form-stok select {
-        width: 100%;  */
+        width: 100%;  
         font-size: 14px; 
     }
 
@@ -435,4 +435,5 @@ body {
 
 .btn-undo:hover {
     background-color: #c0392b;
+
 }
