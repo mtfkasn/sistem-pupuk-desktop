@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jual Pupuk - PupukKaltim</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .info-stok {
+            font-size: 13px;
+            color: #666;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .stok-aman { color: #27ae60; }
+        .stok-habis { color: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo"><h2>PupukKaltim</h2></div>
+            <ul class="sidebar-menu">
+                <li><a href="stok.html">Stok Pupuk</a></li>
+                <li class="active"><a href="jual.html">Jual Pupuk</a></li>
+                <li><a href="riwayat.html">Riwayat</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="index.html" class="btn-logout">Keluar</a>
+            </div>
+        </nav>
+
+        <main class="main-center">
+            <div class="stok-wrapper">
+                <a href="index.html" class="back-link-yellow">← Kembali</a>
+                <h1>Input Pesanan</h1>
+
+                <div class="card-stok">
+                    <div class="form-stok">
+                        <label>Pilih Produk:</label>
+                        <select id="produk" onchange="cekStokTersedia()">
+                            <option value="" disabled selected>Pilih Produk</option>
+                            <option value="ZA SUBSIDI">ZA SUBSIDI</option>
+                            <option value="UREA DAUN BUAH">UREA DAUN BUAH</option>
+                        </select>
+
+                        <div id="tampilanStok" class="info-stok">
+                            Stok Tersedia: - 
+                        </div>
+
+                        <label>Jumlah Zak (1 Zak = 50kg):</label>
+                        <input type="number" id="jumlah" placeholder="Contoh: 1">
+                        
+                        <button class="btn-proses-yellow" onclick="simpanTransaksi()">PROSES</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let stokSaatIni = 0;
+        function cekStokTersedia() {
+            const produkDipilih = document.getElementById('produk').value;
+            const labelStok = document.getElementById('tampilanStok');
+
+            if (!produkDipilih) return;
+            const dataGudang = JSON.parse(localStorage.getItem('stokGudang')) || [];
+            let totalMasuk = 0;
+            dataGudang.forEach(item => {
+                if (item.nama === produkDipilih) {
+                    totalMasuk += parseInt(item.jumlah);
+                }
+            });
+
+            const dataRiwayat = JSON.parse(localStorage.getItem('riwayatPupuk')) || [];
+            let totalKeluar = 0;
+            dataRiwayat.forEach(item => {
+                if (item.produk === produkDipilih) {
+                    totalKeluar += parseInt(item.jumlah);
+                }
+            });
+
+            stokSaatIni = totalMasuk - totalKeluar;
+
+            if (stokSaatIni > 0) {
+                labelStok.innerHTML = `Stok Tersedia: <span class="stok-aman">${stokSaatIni} kg</span>`;
+            } else {
+                labelStok.innerHTML = `Stok Tersedia: <span class="stok-habis">HABIS (0 kg)</span>`;
+            }
+        }
+
+        function simpanTransaksi() {
+            const produk = document.getElementById('produk').value;
+            const jumlahInput = document.getElementById('jumlah').value;
+            
+            if (!produk || !jumlahInput || jumlahInput <= 0) {
+                alert("Mohon lengkapi data penjualan!");
+                return;
+            }
+
+            const jumlahZak = parseInt(jumlahInput);
+            const beratDiminta = jumlahZak * 50; 
+            
+            cekStokTersedia(); 
+
+            if (beratDiminta > stokSaatIni) {
+                alert(`GAGAL! Stok tidak cukup.\nStok tersedia: ${stokSaatIni} kg\nPermintaan: ${beratDiminta} kg`);
+                return;
+            }
+
+            const dataGudang = JSON.parse(localStorage.getItem('stokGudang')) || [];
+            const itemGudang = dataGudang.reverse().find(item => item.nama === produk);
+            let kodeAsli = itemGudang ? itemGudang.kode : "-";
+            let hargaPerKg = 0;
+            if (produk === "ZA SUBSIDI") {
+                hargaPerKg = 1500; 
+            } else if (produk === "UREA DAUN BUAH") {
+                hargaPerKg = 1800; 
+            }
+
+            const totalBayar = beratDiminta * hargaPerKg;
+
+            const dataTransaksi = {
+                tanggal: new Date().toLocaleDateString('id-ID'),
+                waktu: new Date().toLocaleTimeString('id-ID'),
+                kode: kodeAsli, 
+                produk: produk,
+                jumlah: beratDiminta + " kg (" + jumlahZak + " Zak)",
+                total: "Rp " + totalBayar.toLocaleString('id-ID') 
+            };
+
+            let riwayat = JSON.parse(localStorage.getItem('riwayatPupuk')) || [];
+            riwayat.push(dataTransaksi);
+            localStorage.setItem('riwayatPupuk', JSON.stringify(riwayat));
+            localStorage.setItem('transaksiTerakhir', JSON.stringify(dataTransaksi));
+
+            window.location.href = 'struk.html';
+        }
+    </script>
+</body>
+</html>

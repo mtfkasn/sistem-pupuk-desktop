@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Struk Transaksi - PupukKaltim</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        body { background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Courier New', Courier, monospace; margin: 0; }
+        .receipt-card { background: white; padding: 30px; width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid #ffcc00; position: relative; }
+        .receipt-header h2 { margin: 0; font-size: 24px; color: #333; text-transform: uppercase; }
+        .receipt-header p { margin: 5px 0 20px 0; font-size: 12px; color: #666; border-bottom: 2px dashed #ddd; padding-bottom: 15px;}
+        .receipt-body { text-align: left; margin-bottom: 20px; font-size: 14px; }
+        .item-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .spacer { height: 15px; }
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; border-top: 2px dashed #ddd; padding-top: 15px; margin-top: 15px; font-size: 18px; }
+        .receipt-footer { font-size: 11px; color: #888; margin-top: 20px; font-style: italic; }
+        .btn-group { margin-top: 25px; display: flex; flex-direction: column; gap: 10px; }
+        button { padding: 12px; cursor: pointer; border: none; font-weight: bold; border-radius: 5px; font-family: sans-serif; transition: 0.2s; }
+        .btn-print { background: #eee; color: #333; border: 1px solid #ccc; }
+        .btn-print:hover { background: #ddd; }
+        .btn-back { background: #333; color: white; }
+        .btn-back:hover { background: #555; }
+        
+        @media print {
+            body { background: white; align-items: flex-start; }
+            .receipt-card { box-shadow: none; border: none; width: 100%; padding: 0; }
+            .btn-group, .btn-undo { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-card">
+        <div class="receipt-header">
+            <h2>PupukKaltim</h2>
+            <p>Bukti Transaksi Penjualan</p>
+        </div>
+
+        <div class="receipt-body">
+            <div class="item-row">
+                <span>Tanggal:</span>
+                <span id="cetakTanggal">-</span>
+            </div>
+            <div class="item-row">
+                <span>Jam:</span>
+                <span id="cetakWaktu">-</span>
+            </div>
+            
+            <div class="spacer"></div>
+
+            <div class="item-row">
+                <strong id="cetakProduk">Loading...</strong>
+            </div>
+            <div class="item-row">
+                <span id="cetakJumlah">0 kg</span>
+                <span id="cetakTotal">Rp 0</span>
+            </div>
+
+            <div class="total-row">
+                <span>TOTAL:</span>
+                <span id="cetakTotalBesar">Rp 0</span>
+            </div>
+        </div>
+
+        <div class="receipt-footer">
+            Terima Kasih atas kunjungan Anda!<br>
+            Simpan struk ini sebagai bukti pembayaran yang sah.
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn-print" onclick="window.print()">Cetak Struk</button>
+            <button class="btn-back" onclick="window.location.href='jual.html'">Menu Kasir</button>
+            
+            <button class="btn-undo" onclick="undoTransaksi()">Batalkan Transaksi</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            let dataRaw = localStorage.getItem('transaksiTerakhir');
+            let data = null;
+
+            if (!dataRaw) {
+                const riwayat = JSON.parse(localStorage.getItem('riwayatPupuk')) || [];
+                if (riwayat.length > 0) {
+                    data = riwayat[riwayat.length - 1]; 
+                    data.waktu = new Date().toLocaleTimeString('id-ID'); 
+                }
+            } else {
+                data = JSON.parse(dataRaw);
+            }
+
+            if (!data) {
+                document.getElementById('cetakProduk').innerHTML = "<span style='color:red'>Data Tidak Ditemukan</span>";
+                return;
+            }
+
+            document.getElementById('cetakTanggal').innerText = data.tanggal;
+            document.getElementById('cetakWaktu').innerText = data.waktu || "-";
+            document.getElementById('cetakProduk').innerText = data.produk;
+            document.getElementById('cetakJumlah').innerText = data.jumlah;
+            document.getElementById('cetakTotal').innerText = data.total; 
+            document.getElementById('cetakTotalBesar').innerText = data.total;
+        };
+
+        function undoTransaksi() {
+            if(!confirm("PERINGATAN: Apakah Anda yakin ingin membatalkan transaksi ini? Data akan dihapus permanen dari riwayat.")) {
+                return;
+            }
+
+            let riwayat = JSON.parse(localStorage.getItem('riwayatPupuk')) || [];
+            
+            if(riwayat.length > 0) {
+                riwayat.pop(); 
+                localStorage.setItem('riwayatPupuk', JSON.stringify(riwayat));
+                localStorage.removeItem('transaksiTerakhir');
+                alert("Transaksi berhasil dibatalkan dan dihapus.");
+                window.location.href = 'jual.html'; 
+            } else {
+                alert("Tidak ada data transaksi untuk dihapus.");
+            }
+        }
+    </script>
+
+</body>
+</html>

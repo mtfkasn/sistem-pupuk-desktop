@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Transaksi - PupukKaltim</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @media screen and (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            .riwayat-table {
+                min-width: 600px; 
+            }
+        }
+
+        .badge-kode {
+            background: #eee;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #555;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo"><h2>PupukKaltim</h2></div>
+            <ul class="sidebar-menu">
+                <li><a href="stok.html">Stok Pupuk</a></li>
+                <li><a href="jual.html">Jual Pupuk</a></li>
+                <li class="active"><a href="riwayat.html">Riwayat</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="index.html" class="btn-logout">Keluar</a>
+            </div>
+        </nav>
+
+        <main class="main-center">
+            
+            <div class="stok-wrapper" style="max-width: 900px;"> <a href="index.html" class="back-link-yellow">← Kembali</a>
+                <h1>Riwayat Transaksi</h1>
+
+                <div class="card-stok">
+                    
+                    <div class="table-container">
+                        <table class="riwayat-table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Kode Pupuk</th> <th>Produk</th>
+                                    <th>Berat / Jumlah</th>
+                                    <th>Total Harga</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelBody">
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <button onclick="hapusSemua()" style="background:none; border:none; color: #c0392b; cursor:pointer; font-size: 13px;">
+                            🗑️ Bersihkan Semua Riwayat
+                        </button>
+                        <span style="font-size: 12px; color: #aaa;">*Data disimpan otomatis di browser ini</span>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.onload = function() {
+            tampilkanRiwayat();
+        };
+
+        function tampilkanRiwayat() {
+            const riwayat = JSON.parse(localStorage.getItem('riwayatPupuk')) || [];
+            const tabel = document.getElementById('tabelBody');
+            
+            tabel.innerHTML = "";
+
+            if (riwayat.length === 0) {
+                tabel.innerHTML = "<tr><td colspan='6' style='text-align:center; padding: 20px;'>Belum ada data transaksi.</td></tr>";
+                return;
+            }
+
+            riwayat.slice().reverse().forEach((item) => {
+                let baris = `
+                    <tr>
+                        <td>${item.tanggal}<br><small style="color:#888">${item.waktu || ''}</small></td>
+                        <td><span class="badge-kode">${item.kode || '-'}</span></td> <td style="font-weight:bold;">${item.produk}</td>
+                        <td>${item.jumlah}</td>
+                        <td style="font-weight:bold;">${item.total}</td>
+                        <td>
+                            <button class="btn-scan-gray" onclick="cetakUlang('${item.tanggal}', '${item.waktu}')">Detail</button>
+                        </td>
+                    </tr>
+                `;
+                tabel.innerHTML += baris;
+            });
+        }
+
+        function cetakUlang(tgl, waktu) {
+            const riwayat = JSON.parse(localStorage.getItem('riwayatPupuk')) || [];
+            const dataKetemu = riwayat.find(item => item.tanggal === tgl && item.waktu === waktu);
+            
+            if (dataKetemu) {
+                localStorage.setItem('transaksiTerakhir', JSON.stringify(dataKetemu));
+                window.location.href = 'struk.html';
+            } else {
+                alert("Data error atau tidak ditemukan.");
+            }
+        }
+
+        function hapusSemua() {
+            if(confirm("Yakin ingin menghapus SELURUH riwayat transaksi? Data tidak bisa dikembalikan.")) {
+                localStorage.removeItem('riwayatPupuk');
+                tampilkanRiwayat(); 
+            }
+        }
+    </script>
+
+</body>
+</html>
